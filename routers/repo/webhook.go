@@ -637,7 +637,14 @@ func TestWebhook(ctx *context.Context) {
 			CommitMessage: "This is a fake commit",
 		}
 	}
-
+	
+	fileStatus, err := commit.FileStatus()
+	if err != nil {
+		ctx.Flash.Error("FileStatus: " + err.Error())
+		ctx.Status(500)
+		return
+	}
+	
 	apiUser := ctx.User.APIFormat()
 	p := &api.PushPayload{
 		Ref:    git.BranchPrefix + ctx.Repo.Repository.DefaultBranch,
@@ -656,6 +663,9 @@ func TestWebhook(ctx *context.Context) {
 					Name:  commit.Committer.Name,
 					Email: commit.Committer.Email,
 				},
+				Added:    fileStatus.Added,
+				Removed:  fileStatus.Removed,
+				Modified: fileStatus.Modified,
 			},
 		},
 		Repo:   ctx.Repo.Repository.APIFormat(models.AccessModeNone),
